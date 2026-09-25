@@ -1,0 +1,8 @@
+# VeloHearing configuration. Relative paths resolve against the repo root.
+paths:
+  data: data          # per-case working data (normalized audio, manifests)
+  outputs: outputs    # transcripts, reports
+
+ingest:
+  sample_rate: 16000  # Hz; what most ASR models expect
+  channels: 1
