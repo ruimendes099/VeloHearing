@@ -61,16 +61,17 @@ def load_api_key(env_file: Path) -> None:
 def build_prompt(spans: list[dict], words: list[dict], agent_names: list[str],
                  context_s: float) -> str:
     def context(lo: float, hi: float) -> str:
-        return " ".join(w["word"] for w in words if lo <= w["start"] and w["end"] <= hi)
+        # same 0.2 s margin as the span's own words, so context never repeats them
+        return " ".join(w["word"] for w in words if lo < (w["start"] + w["end"]) / 2 < hi)
 
     parts = ["Trechos a rever:\n"]
     for sp in spans:
         parts.append(f'<trecho id="{sp["id"]}" inicio="{sp["start"]:.1f}s" fim="{sp["end"]:.1f}s" '
                      f'motivo="{", ".join(sp["reasons"])}">')
-        parts.append(f"  contexto antes: …{context(sp['start'] - context_s, sp['start'])}")
+        parts.append(f"  contexto antes: …{context(sp['start'] - context_s, sp['start'] - 0.2)}")
         for name in agent_names:
             parts.append(f'  agente {name}: "{sp["alternatives"].get(name, "")}"')
-        parts.append(f"  contexto depois: {context(sp['end'], sp['end'] + context_s)}…")
+        parts.append(f"  contexto depois: {context(sp['end'] + 0.2, sp['end'] + context_s)}…")
         parts.append("</trecho>\n")
     names = ", ".join(f'"{n}"' for n in agent_names)
     parts.append(f'Responde com uma decisão por trecho. verdict tem de ser um de: {names} ou '
