@@ -1,0 +1,33 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Audio — legal recordings must never be committed
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.opus
+*.aac
+*.wma
+*.mp4
+
+# Case data and outputs
+data/
+audio/
+outputs/
+transcripts/
+
+# Secrets and local config
+.env
+*.key
+*.pem
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
