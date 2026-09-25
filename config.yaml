@@ -6,3 +6,11 @@ paths:
 ingest:
   sample_rate: 16000  # Hz; what most ASR models expect
   channels: 1
+
+transcribe:
+  model: small        # faster-whisper size: tiny, base, small, medium, large-v3
+  device: cpu
+  compute_type: int8  # int8 is fastest on CPU
+  language: null      # e.g. "pt" or "en"; null auto-detects per recording
+  beam_size: 5
+  vad_filter: true    # skip long silences

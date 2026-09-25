@@ -24,6 +24,14 @@ are never modified, and ingesting the same recording again does nothing.
 Settings are in `config.yaml`. `data/`, `outputs/` and all audio formats are gitignored,
 because recordings must never be committed.
 
+Transcribe everything ingested for a case (runs on the CPU with faster-whisper; the model downloads on first use):
+
+```bash
+.venv/bin/python -m velohearing transcribe --case CASE-001 [--model medium] [--language pt] [--force]
+```
+
+This writes `outputs/<case>/<recording id>.json` (timestamped segments, model settings and the source file hash) and a readable `.txt` next to it.
+
 ## Tests
 
 ```bash

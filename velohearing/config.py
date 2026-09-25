@@ -8,11 +8,22 @@ DEFAULT_CONFIG = REPO_ROOT / "config.yaml"
 
 
 @dataclass(frozen=True)
+class TranscribeConfig:
+    model: str = "small"
+    device: str = "cpu"
+    compute_type: str = "int8"
+    language: str | None = None
+    beam_size: int = 5
+    vad_filter: bool = True
+
+
+@dataclass(frozen=True)
 class Config:
     data_dir: Path
     outputs_dir: Path
     sample_rate: int
     channels: int
+    transcribe: TranscribeConfig = TranscribeConfig()
 
 
 def load_config(path: Path = DEFAULT_CONFIG) -> Config:
@@ -28,4 +39,5 @@ def load_config(path: Path = DEFAULT_CONFIG) -> Config:
         outputs_dir=resolve(raw["paths"]["outputs"]),
         sample_rate=int(raw["ingest"]["sample_rate"]),
         channels=int(raw["ingest"]["channels"]),
+        transcribe=TranscribeConfig(**(raw.get("transcribe") or {})),
     )
