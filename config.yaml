@@ -14,3 +14,22 @@ transcribe:
   language: null      # e.g. "pt" or "en"; null auto-detects per recording
   beam_size: 5
   vad_filter: true    # skip long silences
+
+analysis:
+  language: pt
+  # Independent ASR agents. The first is the reference timeline; a word is accepted when
+  # a majority of agents heard it. Each agent's output is cached per recording.
+  agents:
+    A: {engine: whisper, model: large-v3-turbo, beam_size: 5, vad_filter: true, condition_on_previous_text: true}
+    B: {engine: whisper, model: medium, beam_size: 5, vad_filter: false, condition_on_previous_text: false}
+    C: {engine: wav2vec2, model: jonatasgrosman/wav2vec2-large-xlsr-53-portuguese}
+  match_threshold: 80     # 0-100 spelling similarity for two words to count as the same
+  time_tolerance_s: 1.0   # how far apart two agents' word timestamps may be
+  min_confidence: 0.5     # agreement below this mean confidence is still flagged
+  merge_gap_s: 1.0        # flagged words closer than this become one span
+  # Text reviewer (Claude API). Only transcript text is sent, never audio.
+  # Key: ANTHROPIC_API_KEY env var or .env in the repo root. Skip with --no-review.
+  review_model: claude-opus-5
+  review_effort: high
+  review_batch_size: 40
+  review_context_s: 20

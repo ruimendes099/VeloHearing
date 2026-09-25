@@ -21,6 +21,12 @@ def main(argv=None) -> int:
     pt.add_argument("--language", help="override transcribe.language from config")
     pt.add_argument("--force", action="store_true", help="redo existing transcripts")
 
+    pa = sub.add_parser("analyze", help="multi-agent analysis and imperceptibility report")
+    pa.add_argument("--case", required=True)
+    pa.add_argument("--no-review", action="store_true",
+                    help="skip the text reviewer (nothing leaves the server)")
+    pa.add_argument("--force", action="store_true", help="rerun agents even if cached")
+
     args = p.parse_args(argv)
     cfg = load_config(args.config)
 
@@ -45,6 +51,16 @@ def main(argv=None) -> int:
             cfg = replace(cfg, transcribe=replace(cfg.transcribe, **overrides))
         try:
             transcribe_case(args.case, cfg, force=args.force)
+        except IngestError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 1
+        return 0
+
+    if args.cmd == "analyze":
+        from .analyze import analyze_case
+
+        try:
+            analyze_case(args.case, cfg, review=not args.no_review, force=args.force)
         except IngestError as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
