@@ -70,13 +70,25 @@ def check_access(model: str) -> None:
         raise ReviewUnavailable("ANTHROPIC_API_KEY is not set (environment or .env in the "
                                 "repo root); use --no-review to skip the text reviewer")
     try:
-        anthropic.Anthropic().models.retrieve(model)
+        client = anthropic.Anthropic()
+        client.models.retrieve(model)
+        # a real (tiny) request: the only way to catch billing problems such as no credit
+        client.messages.create(model=model, max_tokens=16,
+                               messages=[{"role": "user", "content": "Responde só: ok"}])
     except anthropic.AuthenticationError as e:
         raise ReviewUnavailable(f"API key rejected ({e.status_code}, request {e.request_id})") from e
     except anthropic.NotFoundError as e:
         raise ReviewUnavailable(f"model {model!r} not available to this key") from e
     except anthropic.APIConnectionError as e:
         raise ReviewUnavailable(f"cannot reach the Claude API: {e}") from e
+    except anthropic.APIStatusError as e:
+        raise ReviewUnavailable(f"Claude API refused the request ({e.status_code}, request "
+                                f"{e.request_id}): {api_message(e)}") from e
+
+
+def api_message(e) -> str:
+    body = e.body if isinstance(e.body, dict) else {}
+    return (body.get("error") or {}).get("message") or str(e)
 
 
 def build_prompt(spans: list[dict], words: list[dict], agent_names: list[str],

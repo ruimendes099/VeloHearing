@@ -65,6 +65,14 @@ def main(argv=None) -> int:
         except (IngestError, ReviewUnavailable) as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
+        except Exception as e:
+            import anthropic
+
+            if not isinstance(e, anthropic.APIError):
+                raise
+            # agent outputs are cached, so rerunning only repeats the review
+            print(f"error: Claude API failed during review: {e}", file=sys.stderr)
+            return 1
         return 0
 
 
