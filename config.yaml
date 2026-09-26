@@ -29,7 +29,7 @@ analysis:
   merge_gap_s: 1.0        # flagged words closer than this become one span
   # Text reviewer (Claude API). Only transcript text is sent, never audio.
   # Key: ANTHROPIC_API_KEY env var or .env in the repo root. Skip with --no-review.
-  review_model: claude-opus-5
+  review_model: claude-opus-5-5
   review_effort: high
   review_batch_size: 40
   review_context_s: 20

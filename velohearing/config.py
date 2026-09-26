@@ -34,7 +34,7 @@ class AnalysisConfig:
     time_tolerance_s: float = 1.0     # how far apart two agents' timestamps may be
     min_confidence: float = 0.5       # below this mean confidence, agreement is still flagged
     merge_gap_s: float = 1.0          # flagged words closer than this merge into one span
-    review_model: str = "claude-opus-5"
+    review_model: str = "claude-opus-5-5"
     review_effort: str = "high"
     review_batch_size: int = 40
     review_context_s: float = 20.0
