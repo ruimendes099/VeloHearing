@@ -58,10 +58,11 @@ def main(argv=None) -> int:
 
     if args.cmd == "analyze":
         from .analyze import analyze_case
+        from .review import ReviewUnavailable
 
         try:
             analyze_case(args.case, cfg, review=not args.no_review, force=args.force)
-        except IngestError as e:
+        except (IngestError, ReviewUnavailable) as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
         return 0

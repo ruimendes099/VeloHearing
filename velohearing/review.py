@@ -58,6 +58,27 @@ def load_api_key(env_file: Path) -> None:
             os.environ["ANTHROPIC_API_KEY"] = value.strip().strip("'\"")
 
 
+class ReviewUnavailable(Exception):
+    pass
+
+
+def check_access(model: str) -> None:
+    """Fail fast, before hours of transcription, if the reviewer cannot be reached."""
+    import anthropic
+
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        raise ReviewUnavailable("ANTHROPIC_API_KEY is not set (environment or .env in the "
+                                "repo root); use --no-review to skip the text reviewer")
+    try:
+        anthropic.Anthropic().models.retrieve(model)
+    except anthropic.AuthenticationError as e:
+        raise ReviewUnavailable(f"API key rejected ({e.status_code}, request {e.request_id})") from e
+    except anthropic.NotFoundError as e:
+        raise ReviewUnavailable(f"model {model!r} not available to this key") from e
+    except anthropic.APIConnectionError as e:
+        raise ReviewUnavailable(f"cannot reach the Claude API: {e}") from e
+
+
 def build_prompt(spans: list[dict], words: list[dict], agent_names: list[str],
                  context_s: float) -> str:
     def context(lo: float, hi: float) -> str:

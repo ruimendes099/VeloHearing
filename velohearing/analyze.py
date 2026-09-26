@@ -18,7 +18,8 @@ from .agents import build_agents
 from .concordance import concord, norm
 from .config import REPO_ROOT, Config
 from .ingest import case_dir, load_manifest
-from .review import IMPERCEPTIBLE, load_api_key, review_spans, scan_transcript
+from .review import (IMPERCEPTIBLE, check_access, load_api_key, review_spans,
+                     scan_transcript)
 from .transcribe import fmt_ts
 
 RESOLVED, UNREVIEWED = "resolvido", "por rever"
@@ -212,7 +213,7 @@ def render_report(a: dict) -> str:
 
 def analyze_case(case_id: str, cfg: Config, review: bool = True, force: bool = False,
                  log=print, reviewer=review_spans, scanner=scan_transcript,
-                 agents=None) -> list[Path]:
+                 agents=None, preflight=check_access) -> list[Path]:
     ac = cfg.analysis
     cdir = case_dir(cfg, case_id)
     manifest = load_manifest(cdir / "manifest.json", case_id)
@@ -221,6 +222,7 @@ def analyze_case(case_id: str, cfg: Config, review: bool = True, force: bool = F
         return []
     if review:
         load_api_key(REPO_ROOT / ".env")
+        preflight(ac.review_model)
 
     agents = agents or build_agents(ac.agents, ac.language)
     out_dir = cfg.outputs_dir / case_id

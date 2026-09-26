@@ -1,9 +1,11 @@
 import json
 
+import pytest
+
 from test_transcribe import make_case
 
 from velohearing.analyze import analyze_case
-from velohearing.review import IMPERCEPTIBLE
+from velohearing.review import IMPERCEPTIBLE, ReviewUnavailable
 
 
 def w(start, word):
@@ -43,7 +45,7 @@ def fake_scanner(lines, **kw):
 def test_review_resolves_and_unanswered_spans_stay_imperceptible(tmp_path):
     cfg, rec = make_case(tmp_path)
     [report] = analyze_case("c1", cfg, agents=agents(), reviewer=fake_reviewer,
-                            scanner=fake_scanner, log=lambda *_: None)
+                            scanner=fake_scanner, preflight=lambda m: None, log=lambda *_: None)
     a = json.loads(report.with_name(f"{rec['id']}.analysis.json").read_text())
     s1, s2 = a["spans"]
     assert (s1["status"], s1["verdict"]) == ("resolvido", "B")
@@ -71,3 +73,15 @@ def test_agent_output_is_cached(tmp_path):
     assert [a.calls for a in ags] == [1, 1, 1]
     analyze_case("c1", cfg, review=False, force=True, agents=ags, log=lambda *_: None)
     assert [a.calls for a in ags] == [2, 2, 2]
+
+
+def test_reviewer_access_is_checked_before_agents_run(tmp_path):
+    cfg, _ = make_case(tmp_path)
+    ags = agents()
+
+    def refuse(model):
+        raise ReviewUnavailable("no key")
+
+    with pytest.raises(ReviewUnavailable):
+        analyze_case("c1", cfg, agents=ags, preflight=refuse, log=lambda *_: None)
+    assert [a.calls for a in ags] == [0, 0, 0]
